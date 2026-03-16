@@ -21,13 +21,18 @@ color:black;
 
 header{
 color:white;
-padding:25px;
+padding:20px;
 border-bottom:4px solid #7a1c1c;
+}
+
+.logo{
+height:80px;
+margin-bottom:10px;
 }
 
 h1{
 margin:0;
-font-size:44px;
+font-size:42px;
 }
 
 .container{
@@ -43,11 +48,6 @@ border-radius:10px;
 box-shadow:0 10px 30px rgba(0,0,0,0.4);
 max-width:750px;
 width:100%;
-position:relative;
-}
-
-.timerBorder{
-border:8px solid red;
 }
 
 .optionBtn{
@@ -59,10 +59,6 @@ border:none;
 border-radius:6px;
 cursor:pointer;
 font-size:18px;
-}
-
-.optionBtn:hover{
-background:#992222;
 }
 
 .optionBtn.active{
@@ -110,10 +106,14 @@ position:relative;
 }
 
 input{
-font-size:38px;
-padding:10px;
-width:220px;
+font-size:28px;
+padding:8px;
 text-align:center;
+}
+
+#answer{
+font-size:38px;
+width:220px;
 border-radius:8px;
 border:2px solid #ccc;
 }
@@ -152,6 +152,16 @@ animation:fade 1s ease;
 display:none;
 }
 
+table{
+margin:auto;
+border-collapse:collapse;
+}
+
+td,th{
+padding:6px 12px;
+border-bottom:1px solid #ccc;
+}
+
 footer{
 margin-top:30px;
 color:white;
@@ -166,12 +176,20 @@ border-top:4px solid #7a1c1c;
 <body>
 
 <header>
+
+<img src="logo.png" class="logo">
+
 <h1>RufinoMathDigital</h1>
+
 </header>
 
 <div class="container">
 
 <div class="card" id="menu">
+
+<h2>Nombre del estudiante</h2>
+
+<input id="playerName" placeholder="Escribe tu nombre">
 
 <h2>Operaciones</h2>
 
@@ -201,11 +219,9 @@ border-top:4px solid #7a1c1c;
 <div class="card hidden" id="game">
 
 <div class="stats">
-
 Tiempo: <span id="time">0</span> s |
 Correctas: <span id="correct">0</span> |
 Nivel: <span id="level">1</span>
-
 </div>
 
 <div class="progress">
@@ -215,11 +231,8 @@ Nivel: <span id="level">1</span>
 <div id="question"></div>
 
 <div class="answerBox">
-
 <div id="feedback" class="feedback"></div>
-
 <input id="answer" type="number">
-
 </div>
 
 </div>
@@ -228,11 +241,19 @@ Nivel: <span id="level">1</span>
 
 <h2>Sesión finalizada</h2>
 
+<p>Jugador: <span id="player"></span></p>
+
 <p>Respuestas correctas: <span id="finalScore"></span></p>
 
 <p>Nivel alcanzado: <span id="finalLevel"></span></p>
 
-<button onclick="restart()">Reiniciar</button>
+<h3>Ranking</h3>
+
+<table id="rankingTable"></table>
+
+<br>
+
+<button onclick="restart()">Jugar nuevamente</button>
 
 </div>
 
@@ -248,10 +269,11 @@ Aplicativo elaborado por Héctor Escamilla, docente de Matemáticas del Colegio 
 
 let correct=0
 let answer=0
-let startTime
 let totalTime=120
+let startTime
 let interval
 let mode="add"
+let player=""
 
 function level(){
 return Math.floor(correct/15)+1
@@ -266,38 +288,22 @@ return Math.floor(Math.random()*(max-min+1))+min
 }
 
 function setMode(m,btn){
-
 mode=m
-
-document.querySelectorAll("#menu .optionBtn").forEach(b=>{
-
-if(["Suma","Resta","Multiplicación","División","Todas"].includes(b.innerText)){
-b.classList.remove("active")
-}
-
-})
-
+document.querySelectorAll("#menu .optionBtn").forEach(b=>b.classList.remove("active"))
 btn.classList.add("active")
-
 }
 
 function setTime(t,btn){
-
 totalTime=t
-
 document.querySelectorAll("#menu .optionBtn").forEach(b=>{
-
-if(b.innerText.includes("s")){
-b.classList.remove("active")
-}
-
+if(b.innerText.includes("s")) b.classList.remove("active")
 })
-
 btn.classList.add("active")
-
 }
 
 function startGame(){
+
+player=document.getElementById("playerName").value || "Jugador"
 
 document.getElementById("menu").classList.add("hidden")
 document.getElementById("game").classList.remove("hidden")
@@ -318,28 +324,16 @@ let remaining=Math.max(0,Math.floor(totalTime-elapsed))
 
 document.getElementById("time").innerText=remaining
 
-let percent=remaining/totalTime
-
-document.getElementById("game").style.borderColor=
-"rgba(255,0,0,"+(1-percent)+")"
-
-if(remaining<=0){
-endGame()
-}
+if(remaining<=0) endGame()
 
 }
 
 function pickMode(){
-
 if(mode==="all"){
-
-let modes=["add","sub","mul","div"]
-return modes[random(0,3)]
-
+let m=["add","sub","mul","div"]
+return m[random(0,3)]
 }
-
 return mode
-
 }
 
 function newQuestion(){
@@ -352,41 +346,16 @@ document.getElementById("levelBar").style.width=progress()+"%"
 let m=pickMode()
 
 let base=6+lvl*3
-
 let a,b,result,exp
 
-if(m==="add"){
-a=random(1,base)
-b=random(1,base)
-result=a+b
-exp=a+" + "+b
-}
-
-if(m==="sub"){
-a=random(2,base)
-b=random(1,a)
-result=a-b
-exp=a+" − "+b
-}
-
-if(m==="mul"){
-a=random(2,base)
-b=random(2,base)
-result=a*b
-exp=a+" × "+b
-}
-
-if(m==="div"){
-b=random(2,base)
-result=random(2,base)
-a=b*result
-exp=a+" ÷ "+b
-}
+if(m==="add"){a=random(1,base);b=random(1,base);result=a+b;exp=a+" + "+b}
+if(m==="sub"){a=random(2,base);b=random(1,a);result=a-b;exp=a+" − "+b}
+if(m==="mul"){a=random(2,base);b=random(2,base);result=a*b;exp=a+" × "+b}
+if(m==="div"){b=random(2,base);result=random(2,base);a=b*result;exp=a+" ÷ "+b}
 
 answer=result
 
 document.getElementById("question").innerText=exp+" = ?"
-
 document.getElementById("answer").value=""
 document.getElementById("answer").focus()
 
@@ -413,19 +382,13 @@ let user=parseFloat(document.getElementById("answer").value)
 if(isNaN(user)) return
 
 if(user===answer){
-
 correct++
 totalTime+=2
-
 document.getElementById("correct").innerText=correct
-
 showFeedback("✓","correct")
-
 }else{
-
 totalTime-=1
 showFeedback(answer,"wrong")
-
 }
 
 newQuestion()
@@ -433,29 +396,58 @@ newQuestion()
 }
 
 document.getElementById("answer").addEventListener("keydown",function(e){
+if(e.key==="Enter") checkAnswer()
+})
 
-if(e.key==="Enter"){
-checkAnswer()
+function saveScore(){
+
+let ranking=JSON.parse(localStorage.getItem("rufinoRanking"))||[]
+
+ranking.push({name:player,score:correct})
+
+ranking.sort((a,b)=>b.score-a.score)
+
+ranking=ranking.slice(0,10)
+
+localStorage.setItem("rufinoRanking",JSON.stringify(ranking))
+
 }
 
+function showRanking(){
+
+let ranking=JSON.parse(localStorage.getItem("rufinoRanking"))||[]
+
+let table=document.getElementById("rankingTable")
+
+table.innerHTML="<tr><th>#</th><th>Nombre</th><th>Puntaje</th></tr>"
+
+ranking.forEach((r,i)=>{
+
+table.innerHTML+=`<tr><td>${i+1}</td><td>${r.name}</td><td>${r.score}</td></tr>`
+
 })
+
+}
 
 function endGame(){
 
 clearInterval(interval)
 
+saveScore()
+
 document.getElementById("game").classList.add("hidden")
 document.getElementById("gameover").classList.remove("hidden")
 
+document.getElementById("player").innerText=player
 document.getElementById("finalScore").innerText=correct
 document.getElementById("finalLevel").innerText=level()
+
+showRanking()
 
 }
 
 function restart(){
-
 location.reload()
-
 }
 
 </script>
